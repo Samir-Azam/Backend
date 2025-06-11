@@ -1,7 +1,8 @@
 import express from 'express'
+import "dotenv/config";
 
 const app = express()
-const port = 3000
+const port =  process.env.PORT || 3000
 const teaData = []
 let teaId = 1
 
@@ -10,18 +11,21 @@ app.use(express.json());
 // Adding new tea
 app.post('/teas',(req,res)=>{
     const {name,price} = req.body;
+    if (!name || !price){
+        return res.status(400).send(`Name and Price is required.`);
+    }
     let teaDetails  = {
         id:teaId++,
         name,
         price,
     }
     teaData.push(teaDetails);
-    res.status(200).send(teaDetails);
+    res.status(200).json(teaDetails);
 })
 
 // Get All teas
 app.get('/teas',(req,res)=>{
-    res.status(201).send(teaData);
+    res.status(200).json(teaData);
 })
 
 // Find tea with specific id
@@ -31,7 +35,7 @@ app.get('/teas/:id',(req,res)=>{
     if (!tea){
         return res.status(404).send("Tea not found.");
     }
-    res.status(201).send(tea);
+    res.status(200).json(tea);
 })
 
 
@@ -44,9 +48,15 @@ app.put('/teas/:id',(req,res)=>{
         return res.status(404).send("Tea Not Found.")
     }
     const {name, price} = req.body
+    if (!name || !price) {
+      return res.status(400).send(`Name and Price is required.`);
+    }
     teaData[teaIndex].name = name;
     teaData[teaIndex].price = price;
-    res.status(201).send(teaData);
+    res.status(200).json({
+        "message":"Tea updates successfully.",
+        tea:teaData[teaIndex]
+    });
 })
 
 // Delete tea with specific id 
@@ -56,8 +66,11 @@ app.delete('/teas/:id',(req,res)=>{
     if (teaIndex === -1){
         return res.status(404).send("Tea Not Found");
     }
-    teaData.splice(teaIndex,1);
-    res.status(202).send(teaData);
+    const deletedTea = teaData.splice(teaIndex,1);
+    res.status(200).send({
+        message:"Tea is deleted successfully.",
+        tea:deletedTea
+    });
 })
 
 
